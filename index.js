@@ -109,9 +109,9 @@ function queryDatabase(prompt) {
     connection.query(query, (err, res) => {
         if (err) throw err;
         console.log(`
-           =========================================
+        =========================================
                 Results for ${prompt}:
-           =========================================`);
+         =========================================`);
         console.table(res);
     });
 }
