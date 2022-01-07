@@ -30,11 +30,11 @@ connection.connect(err => {
             == Connection Successful! ==
             ============================
     `);
-    prompt();
+    initPrompt();
 })
 
 // inquirer prompts
-function prompt() {
+function initPrompt() {
 
     console.log(`
         ====================================
@@ -60,17 +60,12 @@ function prompt() {
         console.log('answer:', answer);
         switch (answer.init) {
             case promptChoices.viewDepartments: 
-                console.log('View All Departments');
-                // viewDepartments();
                 queryDatabase(answer.init);
                 break;
             case promptChoices.viewRoles: 
-                console.log('View All Roles');
-                // viewRoles();
                 queryDatabase(answer.init);
                 break;
             case promptChoices.viewEmployees:
-                console.log('View Employees');
                 queryDatabase(answer.init);
                 break;
             case promptChoices.addDepartment:
@@ -101,19 +96,28 @@ function queryDatabase(prompt) {
     if (prompt === promptChoices.viewDepartments) {
         query = 'SELECT * FROM department;'
     } else if (prompt === promptChoices.viewEmployees) {
-        query = 'SELECT * FROM employee;'
+        query = `SELECT employee.id, employee.first_name, employee.last_name, roles.title, department.name AS 
+        department, roles.salary, CONCAT(manager.first_name, ' ', manager.last_name) AS manager
+            FROM employee
+            LEFT JOIN employee manager on manager.id = employee.manager_id
+            INNER JOIN roles ON (roles.id = employee.role_id)
+            INNER JOIN department ON (department.id = roles.department_id)
+            ORDER BY employee.id`;
     } else if (prompt === promptChoices.viewRoles) {
-        query = 'SELECT * FROM roles;'
+        query = `
+        `
     }
     
     connection.query(query, (err, res) => {
         if (err) throw err;
         console.log(`
-        =========================================
+            =========================================
                 Results for ${prompt}:
-         =========================================`);
+            =========================================`);
         console.table(res);
+        initPrompt();
     });
+
 }
 
 // displays all employees/departments/roles dependent on inquirer response
