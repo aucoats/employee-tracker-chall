@@ -102,10 +102,13 @@ function queryDatabase(prompt) {
             LEFT JOIN employee manager on manager.id = employee.manager_id
             INNER JOIN roles ON (roles.id = employee.role_id)
             INNER JOIN department ON (department.id = roles.department_id)
-            ORDER BY employee.id`;
+            ORDER BY employee.id;`
     } else if (prompt === promptChoices.viewRoles) {
-        query = `
-        `
+        query = `SELECT roles.title, roles.id, department.name AS department, roles.salary
+            FROM roles
+            LEFT JOIN department on roles.department_id = department.id
+            ORDER BY roles.id;
+        `;
     }
     
     connection.query(query, (err, res) => {
