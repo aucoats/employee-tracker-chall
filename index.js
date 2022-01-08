@@ -129,18 +129,21 @@ function addDepartment() {
             message: "What is the new department's name?"
         }
     ]).then(newDept => {
+        // takes prompt response and inserts into db
         connection.query(`INSERT INTO department SET ?`,
         {
             name: newDept.name 
-        }
-            );
+        }, (err, res) => {
+        if (err) throw err;
+        
         console.log(`
         =====================================
         New Department ${newDept.name} added!
         =====================================
         `)
         initPrompt();
-    })
+        }
+    )})
 }
 
 // adds role to db
