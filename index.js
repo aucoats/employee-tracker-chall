@@ -73,8 +73,7 @@ function initPrompt() {
                 addDepartment();
                 break;
             case promptChoices.addRole:
-                console.log('Add A Role');
-                // addRole();
+                addRole();
                 break;
             case promptChoices.addEmployee: 
                 addEmployee();
@@ -135,7 +134,7 @@ function addDepartment() {
             name: newDept.name 
         }, (err, res) => {
         if (err) throw err;
-        
+
         console.log(`
         =====================================
         New Department ${newDept.name} added!
@@ -147,6 +146,77 @@ function addDepartment() {
 }
 
 // adds role to db
+async function addRole() {
+    // holds prompt input for new role name
+    const newName = await inquirer.prompt([
+        {
+            name: 'name', 
+            type: 'input', 
+            message: "What is the new role's name?"
+        }
+    ])
+
+    // holds prompt input for new role salary
+    const newSalary = await inquirer.prompt([
+        {
+            name: 'salary', 
+            type: 'input', 
+            message: "What is the new role's salary?",
+            // validate: () => {
+            //     isInt(newSalary.newSalary == 1.00)
+            // }
+        }
+    ])
+
+    // queries dept db so user can choose which dept new role belongs to
+    connection.query('SELECT department.id, department.name FROM department ORDER BY department.id', async (err, res) => {
+        if (err) throw err; 
+
+        const newDept = await inquirer.prompt(
+            {
+                name: 'name', 
+                type: 'list', 
+                choices: () => res.map(res => res.name), 
+                message: "Which department does this new role belong to?"
+            }
+        )
+        
+        // declaration for later use
+        let newDeptId; 
+
+        // when row name matches user input, sets new role id
+        for (const row of res) {
+            if (row.name === newDept.name) {
+                newDeptId = row.id;
+                continue;
+            }
+        }
+
+        // holds values for sql query
+        let params = {
+            title: newName.name,
+            salary: newSalary.salary,
+            department_id: newDeptId
+        }
+
+        connection.query(
+            `INSERT INTO roles SET?`, 
+            {
+               title: params.title, 
+               salary: params.salary,
+               department_id: params.department_id
+            }, (err, res) => {
+                if (err) throw err;
+                console.log(` 
+                ===================================================
+                        New Role ${params.title} added!
+                ===================================================`)
+                initPrompt();
+            })
+
+
+    })
+}
 
 // adds employee to db
 async function addEmployee() {
