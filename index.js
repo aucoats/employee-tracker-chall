@@ -199,6 +199,7 @@ async function addRole() {
             department_id: newDeptId
         }
 
+        // inserts info into roles table
         connection.query(
             `INSERT INTO roles SET?`, 
             {
@@ -305,7 +306,7 @@ async function addEmployee() {
         manager_id: newManagerId
     }
 
-    // inserts all required info into db
+    // inserts all required info into employee table
     connection.query(
         `INSERT INTO employee SET?`, 
         {
