@@ -70,15 +70,13 @@ function initPrompt() {
                 queryDatabase(answer.init);
                 break;
             case promptChoices.addDepartment:
-                console.log('Add a Department');
-                // addDepartment();
+                addDepartment();
                 break;
             case promptChoices.addRole:
                 console.log('Add A Role');
                 // addRole();
                 break;
-            case promptChoices.addEmployee:
-                console.log('Add Employee');
+            case promptChoices.addEmployee: 
                 addEmployee();
                 break;
             case promptChoices.updateEmployee:
@@ -122,6 +120,32 @@ function queryDatabase(prompt) {
 
 }
 
+// adds department to db
+function addDepartment() {
+    inquirer.prompt([
+        {
+            name: 'name', 
+            type: 'input', 
+            message: "What is the new department's name?"
+        }
+    ]).then(newDept => {
+        connection.query(`INSERT INTO department SET ?`,
+        {
+            name: newDept.name 
+        }
+            );
+        console.log(`
+        =====================================
+        New Department ${newDept.name} added!
+        =====================================
+        `)
+        initPrompt();
+    })
+}
+
+// adds role to db
+
+// adds employee to db
 async function addEmployee() {
     
     // sets newName to user responses
@@ -207,7 +231,7 @@ async function addEmployee() {
         role_id: newRoleId,
         manager_id: newManagerId
     }
-    console.log('params:', params)
+
     // inserts all required info into db
     connection.query(
         `INSERT INTO employee SET?`, 
@@ -222,10 +246,11 @@ async function addEmployee() {
             ===================================================
                 New Employee ${params.first_name} added!
             ===================================================`)
+            initPrompt();
         }
     )
     })
     })
-}
+};
 
 
