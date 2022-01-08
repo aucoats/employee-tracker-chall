@@ -1,5 +1,6 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
+const { parse } = require('dotenv');
 require('console.table');
 require('dotenv').config();
 
@@ -57,7 +58,7 @@ function initPrompt() {
         ]
     })
     .then(answer => {
-        console.log('answer:', answer);
+        // calls function based on prompt response
         switch (answer.init) {
             case promptChoices.viewDepartments: 
                 queryDatabase(answer.init);
@@ -78,7 +79,7 @@ function initPrompt() {
                 break;
             case promptChoices.addEmployee:
                 console.log('Add Employee');
-                // addEmployee();
+                addEmployee();
                 break;
             case promptChoices.updateEmployee:
                 console.log('Update emp role');
@@ -86,11 +87,9 @@ function initPrompt() {
                 break;
         }
     });
-
-  
 }
 
-// functions called on inquirer responses
+// displays all employees/departments/roles dependent on inquirer response
 function queryDatabase(prompt) {
     let query; 
     if (prompt === promptChoices.viewDepartments) {
@@ -123,6 +122,110 @@ function queryDatabase(prompt) {
 
 }
 
-// displays all employees/departments/roles dependent on inquirer response
+async function addEmployee() {
+    
+    // sets newName to user responses
+    const newName = await inquirer.prompt([
+        {
+            name: 'firstName', 
+            type: 'input', 
+            message: "What is the new employee's first name?", 
+        }, 
+        {
+            name: 'lastName', 
+            type: 'input', 
+            message: "What is the new employee's last name?"
+        }])
+   
+    // queries roles db and uses res object to get choices for prompt
+    connection.query('SELECT roles.id, roles.title FROM roles ORDER BY roles.id;', async (err, res) => {
+        if (err) throw err; 
+
+        // newRole to hold prompt response
+        const newRole = await inquirer.prompt(
+            {
+                name: 'role', 
+                type: 'list', 
+                choices: () => res.map(res => res.title), 
+                message: "What is the new employee's role?", 
+            }
+        );
+
+    // declares variable to hold new employee's role id
+    let newRoleId; 
+    
+    // checks each row until matches with user input, sets newRoleId when matched & continues
+    for (const row of res) {
+        if (row.title === newRole.role) {
+            newRoleId = row.id; 
+            continue;
+        }
+    }
+    
+    // query employee db for manager choice
+    connection.query('SELECT * FROM employee', async (err, res) => {
+        if (err) throw err; 
+
+        // concats first & last names of employees for prompt choices
+        let managerChoice = res.map(res => `${res.first_name} ${res.last_name}`);
+
+        // adds no manager option to prompt choices
+        managerChoice.push('No manager');
+
+        // newManager to hold prompt response
+        let newManager = await inquirer.prompt([
+            {
+                name: 'newManager', 
+                type: 'list', 
+                choices: managerChoice, 
+                message: "Who is the new employee's manager?"
+            }
+        ])
+
+        // declare to set later
+        let newManagerId; 
+
+        // adds null response if new employee has no manager
+        if (newManager.newManager === 'No manager') {
+            newManagerId = null;
+        } else {
+
+            // matches response object with inquirer prompt, sets newManagerId for new employee & continues
+            for (const row of res) {
+                row.Name = `${row.first_name} ${row.last_name}`
+                if (row.Name === newManager.newManager) {
+                    newManagerId = row.id; 
+                    continue;
+                }
+            }
+        }
+
+    // obj to hold query params
+    let params = {
+        first_name: newName.firstName, 
+        last_name: newName.lastName, 
+        role_id: newRoleId,
+        manager_id: newManagerId
+    }
+    console.log('params:', params)
+    // inserts all required info into db
+    connection.query(
+        `INSERT INTO employee SET?`, 
+        {
+            first_name: params.first_name,
+            last_name: params.last_name, 
+            role_id: params.role_id,
+            manager_id: params.manager_id
+        }, (err, res) => {
+            if (err) throw err;
+            console.log(` 
+            ===================================================
+                New Employee ${params.first_name} added!
+            ===================================================`)
+        }
+    )
+    })
+    })
+}
 
 
