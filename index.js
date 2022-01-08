@@ -79,8 +79,7 @@ function initPrompt() {
                 addEmployee();
                 break;
             case promptChoices.updateEmployee:
-                console.log('Update emp role');
-                // updateEmployee();
+                updateEmployee();
                 break;
         }
     });
@@ -327,4 +326,61 @@ async function addEmployee() {
     })
 };
 
+// updates employee 
+async function updateEmployee() {
+    connection.query(`SELECT employee.first_name, employee.last_name FROM employee ORDER BY employee.id`, 
+        async (err, res) => {
+            if (err) throw err; 
+            
+            const employeeName = res.map(res => `${res.first_name} ${res.last_name}`);
+
+            let updateChoice = await inquirer.prompt([
+                {
+                    name: 'updateChoice', 
+                    type: 'list',
+                    choices: employeeName,
+                    message: "Which employee would you like to update?"
+                }
+            ]);
+
+            connection.query('SELECT roles.id, roles.title FROM roles ORDER BY roles.id;', async (err, res) => {
+                if (err) throw err; 
+        
+                // newRole to hold prompt response
+                const newRole = await inquirer.prompt(
+                    {
+                        name: 'role', 
+                        type: 'list', 
+                        choices: () => res.map(res => res.title), 
+                        message: "What is the new employee's role?", 
+                    }
+                );
+        
+            // declares variable to hold employee's new role id
+            let newRoleId; 
+            
+            // checks each row until matches with user input, sets newRoleId when matched & continues
+            for (const row of res) {
+                if (row.title === newRole.role) {
+                    newRoleId = row.id; 
+                    continue;
+                }
+            }
+
+            connection.query(`UPDATE employee
+                SET employee.role_id = ${newRoleId}
+                WHERE ${updateChoice.updateChoice};`, 
+                (err, res) => {
+                    if (err) throw err; 
+                    console.log(`
+                ========================================================================
+                Employee ${updateChoice} has been assigned to the ${newRole.role} role!
+                ========================================================================
+                `)
+                initPrompt();
+                })
+        })
+   
+})
+}
 
