@@ -328,10 +328,12 @@ async function addEmployee() {
 
 // updates employee 
 async function updateEmployee() {
+    // gets employee info for choices array
     connection.query(`SELECT employee.first_name, employee.last_name FROM employee ORDER BY employee.id`, 
         async (err, res) => {
             if (err) throw err; 
             
+            // concats employee names for choices array
             const employeeName = res.map(res => `${res.first_name} ${res.last_name}`);
 
             let updateChoice = await inquirer.prompt([
@@ -342,6 +344,12 @@ async function updateEmployee() {
                     message: "Which employee would you like to update?"
                 }
             ]);
+            
+            // sets chosen employee name to variables for later use
+            let nameOfUpdated = [];
+            nameOfUpdated = updateChoice.updateChoice.split(' ');
+            const firstName = nameOfUpdated[0];
+            const lastName = nameOfUpdated[1];
 
             connection.query('SELECT roles.id, roles.title FROM roles ORDER BY roles.id;', async (err, res) => {
                 if (err) throw err; 
@@ -367,15 +375,16 @@ async function updateEmployee() {
                 }
             }
 
+            // update query
             connection.query(`UPDATE employee
-                SET employee.role_id = ${newRoleId}
-                WHERE ${updateChoice.updateChoice};`, 
+                SET role_id = ${newRoleId}
+                WHERE last_name = '${lastName}';`, 
                 (err, res) => {
                     if (err) throw err; 
                     console.log(`
-                ========================================================================
-                Employee ${updateChoice} has been assigned to the ${newRole.role} role!
-                ========================================================================
+                ================================================================================
+                    Employee ${firstName} ${lastName} has been assigned to the ${newRole.role} role!
+                ================================================================================
                 `)
                 initPrompt();
                 })
