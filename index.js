@@ -360,7 +360,7 @@ async function updateEmployee() {
                         name: 'role', 
                         type: 'list', 
                         choices: () => res.map(res => res.title), 
-                        message: "What is the new employee's role?", 
+                        message: "What is the employee's updated role?", 
                     }
                 );
         

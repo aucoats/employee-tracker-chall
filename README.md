@@ -14,8 +14,17 @@ Run
 
     npm i mysql2 inquirer dotenv console.table
 
-to install all reaquired npm packages. 
+to install all required npm packages. 
 The .env file in the root of the repository will need to be updated with the user's MySQL login credentials. 
+Additionally, user must utilize MySQL commands 
+
+    source db/db.sql 
+
+    source db/schema.sql
+
+    source db/seeds.sql 
+
+to create databases that the application can interact with. This is only for demo of the application and seeds.sql can be altered to fit your organization's information. 
 
 Invoke application using 
 
